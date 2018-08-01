@@ -12,8 +12,10 @@ fig = plt.figure()
 ax1 = fig.add_subplot(111)
 line, = ax1.plot([],[], "-", markersize=7)
 line2, = ax1.plot([],[],'--', markersize=7)
-ax1.set_xlim(-1e12, 1e12)
-ax1.set_ylim(-1e12, 1e12)
+ax1.axis('equal')
+ax1.set_xlim(-1.3e12, 1.3e12)
+ax1.set_ylim(-1.3e12, 1.3e12)
+
 
 #Class for objects that are affeted by gravity, Sun, planets, moons and smaller
 class Body:
@@ -30,8 +32,8 @@ class Body:
         self.historical_y = [y]
 
     def orbitSun(self, tstep):
-        self.velx = self.velx -((GM*self.x)/(self.distance**3))*tstep
-        self.vely = self.vely - ((GM*self.y) / (self.distance ** 3))*tstep
+        self.velx = self.velx - ((GM*self.x)/(self.distance**3)) * tstep
+        self.vely = self.vely - ((GM*self.y) / (self.distance**3)) * tstep
         self.x = self.x + self.velx * tstep
         self.y = self.y + self.vely * tstep
         self.historical_x.append(self.x)
