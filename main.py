@@ -7,8 +7,11 @@ G = 6.67408e-11
 Msun = 1.989e30
 GM = G*Msun
 month_secs = 2.628e6
+astronomical_unit = 1.496e11
 
+#Set up the plot
 fig = plt.figure()
+fig.suptitle("Solar System")
 ax1 = fig.add_subplot(111)
 line, = ax1.plot([],[], "-", markersize=7)
 line2, = ax1.plot([],[],'--', markersize=7)
@@ -21,7 +24,7 @@ ax1.set_ylim(-1.3e12, 1.3e12)
 class Body:
     def __init__(self, name, parent, x, y, mass, velx, vely):
         self.name = name
-        self.parent = parent #What the body is orbiting (Sun or planet)
+        self.parent = parent
         self.x = x
         self.y = y
         self.distance = math.sqrt(x**2 + y**2)
@@ -42,10 +45,8 @@ class Body:
 
 def animate(i, planet1,planet2, tstep):
     #Plot the position of the planet
-    x1, y1 = planet1.historical_x, planet1.historical_y
-    x2, y2 = planet2.historical_x, planet2.historical_y
-    line.set_data(x1,y1)
-    line2.set_data(x2,y2)
+    line.set_data(planet1.historical_x, planet1.historical_y)
+    line2.set_data(planet2.historical_x, planet2.historical_y)
     planet1.orbitSun(tstep)
     planet2.orbitSun(tstep)
     return line, line2,
@@ -56,6 +57,11 @@ def main():
     #Create our celestial bodies with initial conditions
     Earth = Body("Earth","Sun",0,1.496e11,5.972e24,30000,0)
     Jupiter = Body("Jupiter","Sun",0,816.62e9,1.8982e27,13070,0)
+
+    #Need a list of bodies to pass to Orbit sun that adds the effect of gravity from all other bodies
+    #bodies = [Earth, Jupiter]
+    #When we pass bodies and Earth to orbit sun we need it to take every body except earth and calculate change in velocity
+
     tstep = int(float(input("Enter time step (months) : " ))*month_secs)
     ani = animation.FuncAnimation(fig,animate,fargs=(Earth,Jupiter,tstep),interval=10,blit=True)
     plt.show()
