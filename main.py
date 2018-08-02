@@ -2,25 +2,25 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-#Define some useful physical constants
+# Define some useful physical constants
 G = 6.67408e-11
 Msun = 1.989e30
 GM = G*Msun
 month_secs = 2.628e6
 astronomical_unit = 1.496e11
 
-#Set up the plot
+# Set up the plot
 fig = plt.figure()
 fig.suptitle("Solar System")
 ax1 = fig.add_subplot(111)
-line, = ax1.plot([],[], "-", markersize=7)
-line2, = ax1.plot([],[],'--', markersize=7)
+line, = ax1.plot([], [], "-", markersize=7)
+line2, = ax1.plot([], [], '--', markersize=7)
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
 ax1.set_ylim(-1.3e12, 1.3e12)
 
 
-#Class for objects that are affeted by gravity, Sun, planets, moons and smaller
+# Class for objects that are affected by gravity, Sun, planets, moons and smaller
 class Body:
     def __init__(self, name, parent, x, y, mass, velx, vely):
         self.name = name
@@ -37,33 +37,52 @@ class Body:
     def orbitSun(self, tstep):
         self.velx = self.velx - ((GM*self.x)/(self.distance**3)) * tstep
         self.vely = self.vely - ((GM*self.y) / (self.distance**3)) * tstep
-        self.x = self.x + self.velx * tstep
-        self.y = self.y + self.vely * tstep
-        self.historical_x.append(self.x)
-        self.historical_y.append(self.y)
-        return (self.x,self.y)
+
+    def orbitBody(self, partner, tstep):
+        # Change the velocity of self and partner due to the effect of gravity between them
+        r3 = math.sqrt((partner.x - self.x)**2+(partner.y - self.y)**2)**3
+        # Change velocity of self
+        self.velx = self.velx + ((G * partner.mass * (partner.x - self.x))/r3) * tstep
+        self.vely = self.vely + ((G * partner.mass * (partner.y - self.y)) / r3) * tstep
+        # Change velocity of partner
+        partner.velx = partner.velx + ((G * self.mass * (self.x - partner.x)) / r3) * tstep
+        partner.vely = partner.vely + ((G * self.mass * (self.y - partner.y)) / r3) * tstep
+
+
+def gravityForces(bodies, tstep):
+    # bodies is a list of Body objects (massive bodies)
+    for i in range(0, len(bodies)-1):
+        bodies[i].orbitSun(tstep)
+        for partner in bodies[i+1:]:
+            bodies[i].orbitBody(partner, tstep)
+    bodies[-1].orbitSun(tstep)
+
+    # Now update the position of each body
+    for j in range(0, len(bodies)):
+        bodies[j].x = bodies[j].x + bodies[j].velx * tstep
+        bodies[j].y = bodies[j].y + bodies[j].vely * tstep
+        bodies[j].historical_x.append(bodies[j].x)
+        bodies[j].historical_y.append(bodies[j].y)
+
 
 def animate(i, planet1,planet2, tstep):
-    #Plot the position of the planet
+    # Plot the position of the planet
     line.set_data(planet1.historical_x, planet1.historical_y)
     line2.set_data(planet2.historical_x, planet2.historical_y)
-    planet1.orbitSun(tstep)
-    planet2.orbitSun(tstep)
+    # Create list of planets and pass this to gravityForces, Ideally this list would be passed to this function too
+    planet_list = [planet1, planet2]
+    gravityForces(planet_list, tstep)
     return line, line2,
 
 
-#Start with just earth and jupiter
+# Start with just earth and jupiter
 def main():
-    #Create our celestial bodies with initial conditions
-    Earth = Body("Earth","Sun",0,1.496e11,5.972e24,30000,0)
-    Jupiter = Body("Jupiter","Sun",0,816.62e9,1.8982e27,13070,0)
-
-    #Need a list of bodies to pass to Orbit sun that adds the effect of gravity from all other bodies
-    #bodies = [Earth, Jupiter]
-    #When we pass bodies and Earth to orbit sun we need it to take every body except earth and calculate change in velocity
-
-    tstep = int(float(input("Enter time step (months) : " ))*month_secs)
-    ani = animation.FuncAnimation(fig,animate,fargs=(Earth,Jupiter,tstep),interval=10,blit=True)
+    # Create our celestial bodies with initial conditions
+    earth = Body("Earth", "Sun", 0, 1.496e11, 5.972e24, 30000, 0)
+    jupiter = Body("Jupiter", "Sun", 0, 816.62e9, 1.8982e27, 13070, 0)
+    tstep = int(float(input("Enter time step (months) : "))*month_secs)
+    ani = animation.FuncAnimation(fig, animate, fargs=(earth, jupiter, tstep), interval=10, blit=True)
     plt.show()
+
 
 main()
