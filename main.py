@@ -13,9 +13,11 @@ astronomical_unit = 1.496e11
 fig = plt.figure()
 fig.suptitle("Solar System")
 ax1 = fig.add_subplot(111)
-line, = ax1.plot([], [], "-", markersize=7)
+line, = ax1.plot([], [], "--", markersize=7)
 line2, = ax1.plot([], [], '--', markersize=7)
-line3, = ax1.plot([], [], '-', markersize=7)
+line3, = ax1.plot([], [], '--', markersize=7)
+# Want lines in a list, later we can determine the number of planets and create lines list as required
+lines = [line, line2, line3]
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
 ax1.set_ylim(-1.3e12, 1.3e12)
@@ -66,15 +68,13 @@ def gravityForces(bodies, tstep):
         bodies[j].historical_y.append(bodies[j].y)
 
 
-def animate(i, planet1,planet2, planet3, tstep):
+def animate(i, planet_list, tstep):
     # Plot the position of the planet
-    line.set_data(planet1.historical_x, planet1.historical_y)
-    line2.set_data(planet2.historical_x, planet2.historical_y)
-    line3.set_data(planet3.historical_x, planet3.historical_y)
-    # Create list of planets and pass this to gravityForces, Ideally this list would be passed to this function too
-    planet_list = [planet1, planet2, planet3]
+    for j in range(0, len(planet_list)):
+        lines[j].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
+
     gravityForces(planet_list, tstep)
-    return line, line2, line3,
+    return lines
 
 
 # Start with just earth and jupiter
@@ -83,8 +83,9 @@ def main():
     earth = Body("Earth", "Sun", 0, 1.496e11, 5.972e24, 30000, 0)
     jupiter = Body("Jupiter", "Sun", 0, 816.62e9, 1.8982e27, 13070, 0)
     mars = Body("Mars", "Sun", 2.492e11, 0, 6.39e23, 0, -22000)
+    planet_list = [earth, jupiter, mars]
     tstep = int(float(input("Enter time step (months) : "))*month_secs)
-    ani = animation.FuncAnimation(fig, animate, fargs=(earth, jupiter, mars, tstep), interval=10, blit=True)
+    ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, tstep), interval=1, blit=True)
     plt.show()
 
 
