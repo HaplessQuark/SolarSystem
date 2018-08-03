@@ -1,6 +1,8 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.patches as patch
+from matplotlib.collections import PatchCollection
 
 # Define some useful physical constants
 G = 6.67408e-11
@@ -16,8 +18,14 @@ ax1 = fig.add_subplot(111)
 line, = ax1.plot([], [], "--", markersize=7)
 line2, = ax1.plot([], [], '--', markersize=7)
 line3, = ax1.plot([], [], '--', markersize=7)
+line4, = ax1.plot([], [], '--', markersize=7)
 # Want lines in a list, later we can determine the number of planets and create lines list as required
-lines = [line, line2, line3]
+lines = [line, line2, line3, line4]
+sun_patch = [patch.Circle((0, 0), 1e10)]
+sun_patch[0].set_facecolor('y')
+sun_patch[0].set_edgecolor('y')
+patch_collection = PatchCollection(sun_patch)
+ax1.add_collection(patch_collection)
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
 ax1.set_ylim(-1.3e12, 1.3e12)
@@ -83,7 +91,8 @@ def main():
     earth = Body("Earth", "Sun", 0, 1.496e11, 5.972e24, 30000, 0)
     jupiter = Body("Jupiter", "Sun", 0, 816.62e9, 1.8982e27, 13070, 0)
     mars = Body("Mars", "Sun", 2.492e11, 0, 6.39e23, 0, -22000)
-    planet_list = [earth, jupiter, mars]
+    fake = Body("FakePlanet", "Sun", 9e11, 9e11, 2e26, 1000, -400)
+    planet_list = [earth, jupiter, mars, fake]
     tstep = int(float(input("Enter time step (months) : "))*month_secs)
     ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, tstep), interval=1, blit=True)
     plt.show()
