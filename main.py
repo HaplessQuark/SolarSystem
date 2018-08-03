@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patch
 from matplotlib.collections import PatchCollection
+import msvcrt
 
 # Define some useful physical constants
 G = 6.67408e-11
@@ -59,6 +60,10 @@ class Body:
         partner.velx = partner.velx + ((G * self.mass * (self.x - partner.x)) / r3) * tstep
         partner.vely = partner.vely + ((G * self.mass * (self.y - partner.y)) / r3) * tstep
 
+    def scale_mass(self):
+        scale_factor = float(input("Enter a scale factor for the mass: "))
+        self.mass = scale_factor * self.mass
+
 
 def gravityForces(bodies, tstep):
     # bodies is a list of Body objects (massive bodies)
@@ -96,6 +101,5 @@ def main():
     tstep = int(float(input("Enter time step (months) : "))*month_secs)
     ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, tstep), interval=1, blit=True)
     plt.show()
-
 
 main()
