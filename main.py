@@ -28,6 +28,8 @@ ax1.add_collection(patch_collection)
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
 ax1.set_ylim(-1.3e12, 1.3e12)
+text_string = "0 mths."
+time_text = ax1.text(0.05,0.9,text_string, transform=ax1.transAxes)
 
 
 # Class for objects that are affected by gravity, Sun, planets, moons and smaller
@@ -75,14 +77,24 @@ def gravity_forces(bodies, tstep):
         bodies[j].historical_x.append(bodies[j].x)
         bodies[j].historical_y.append(bodies[j].y)
 
+        # Delete redundant historical data
+        if len(bodies[j].historical_x) > 100:
+            bodies[j].historical_x.pop(0)
+            bodies[j].historical_y.pop(0)
+
 
 def animate(i, planet_list, tstep):
     # Plot the position of the planet
+    month_step = tstep / MONTH_SECS
+    if i * month_step > 24:
+        time_text.set_text("%(current_time)i yrs." % {"current_time": int(i * month_step / 12)})
+    else:
+        time_text.set_text("%(current_time)g mths." % {"current_time": i * month_step})
     for j in range(0, len(planet_list)):
         lines[j].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
 
     gravity_forces(planet_list, tstep)
-    return lines
+    return lines + [time_text,]
 
 
 # Start with just earth and jupiter
