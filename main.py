@@ -6,10 +6,10 @@ from matplotlib.collections import PatchCollection
 
 # Define some useful physical constants
 G = 6.67408e-11
-Msun = 1.989e30
-GM = G*Msun
-month_secs = 2.628e6
-astronomical_unit = 1.496e11
+M_SUN = 1.989e30
+GM = G*M_SUN
+MONTH_SECS = 2.628e6
+ASTRONOMICAL_UNIT = 1.496e11
 
 # Set up the plot
 fig = plt.figure()
@@ -22,9 +22,8 @@ line4, = ax1.plot([], [], '--', markersize=7)
 # Want lines in a list, later we can determine the number of planets and create lines list as required
 lines = [line, line2, line3, line4]
 sun_patch = [patch.Circle((0, 0), 1e10)]
-sun_patch[0].set_facecolor('y')
-sun_patch[0].set_edgecolor('y')
 patch_collection = PatchCollection(sun_patch)
+patch_collection.set_color('orange')
 ax1.add_collection(patch_collection)
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
@@ -42,11 +41,11 @@ class Body:
         self.vel_x, self.vel_y = velx, vely
         self.historical_x, self.historical_y = [x], [y]
 
-    def orbitSun(self, tstep):
+    def orbit_sun(self, tstep):
         self.vel_x = self.vel_x - ((GM*self.x)/(self.distance**3)) * tstep
         self.vel_y = self.vel_y - ((GM*self.y) / (self.distance**3)) * tstep
 
-    def orbitBody(self, partner, tstep):
+    def orbit_body(self, partner, tstep):
         # Change the velocity of self and partner due to the effect of gravity between them
         r3 = math.sqrt((partner.x - self.x)**2+(partner.y - self.y)**2)**3
         # Change velocity of self
@@ -61,13 +60,13 @@ class Body:
         self.mass = scale_factor * self.mass
 
 
-def gravityForces(bodies, tstep):
+def gravity_forces(bodies, tstep):
     # bodies is a list of Body objects (massive bodies)
     for i in range(0, len(bodies)-1):
-        bodies[i].orbitSun(tstep)
+        bodies[i].orbit_sun(tstep)
         for partner in bodies[i+1:]:
-            bodies[i].orbitBody(partner, tstep)
-    bodies[-1].orbitSun(tstep)
+            bodies[i].orbit_body(partner, tstep)
+    bodies[-1].orbit_sun(tstep)
 
     # Now update the position of each body
     for j in range(0, len(bodies)):
@@ -82,7 +81,7 @@ def animate(i, planet_list, tstep):
     for j in range(0, len(planet_list)):
         lines[j].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
 
-    gravityForces(planet_list, tstep)
+    gravity_forces(planet_list, tstep)
     return lines
 
 
@@ -94,7 +93,7 @@ def main():
     mars = Body("Mars", "Sun", 2.492e11, 0, 6.39e23, 0, -22000)
     fake = Body("FakePlanet", "Sun", 9e11, 9e11, 2e26, 1000, -400)
     planet_list = [earth, jupiter, mars, fake]
-    tstep = int(float(input("Enter time step (months) : "))*month_secs)
+    tstep = int(float(input("Enter time step (months) : "))*MONTH_SECS)
     ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, tstep), interval=1, blit=True)
     plt.show()
 
