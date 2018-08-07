@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patch
 from matplotlib.collections import PatchCollection
-import msvcrt
 
 # Define some useful physical constants
 G = 6.67408e-11
@@ -37,28 +36,25 @@ class Body:
     def __init__(self, name, parent, x, y, mass, velx, vely):
         self.name = name
         self.parent = parent
-        self.x = x
-        self.y = y
+        self.x, self.y = x, y
         self.distance = math.sqrt(x**2 + y**2)
         self.mass = mass
-        self.velx = velx
-        self.vely = vely
-        self.historical_x = [x]
-        self.historical_y = [y]
+        self.vel_x, self.vel_y = velx, vely
+        self.historical_x, self.historical_y = [x], [y]
 
     def orbitSun(self, tstep):
-        self.velx = self.velx - ((GM*self.x)/(self.distance**3)) * tstep
-        self.vely = self.vely - ((GM*self.y) / (self.distance**3)) * tstep
+        self.vel_x = self.vel_x - ((GM*self.x)/(self.distance**3)) * tstep
+        self.vel_y = self.vel_y - ((GM*self.y) / (self.distance**3)) * tstep
 
     def orbitBody(self, partner, tstep):
         # Change the velocity of self and partner due to the effect of gravity between them
         r3 = math.sqrt((partner.x - self.x)**2+(partner.y - self.y)**2)**3
         # Change velocity of self
-        self.velx = self.velx + ((G * partner.mass * (partner.x - self.x))/r3) * tstep
-        self.vely = self.vely + ((G * partner.mass * (partner.y - self.y)) / r3) * tstep
+        self.vel_x = self.vel_x + ((G * partner.mass * (partner.x - self.x))/r3) * tstep
+        self.vel_y = self.vel_y + ((G * partner.mass * (partner.y - self.y)) / r3) * tstep
         # Change velocity of partner
-        partner.velx = partner.velx + ((G * self.mass * (self.x - partner.x)) / r3) * tstep
-        partner.vely = partner.vely + ((G * self.mass * (self.y - partner.y)) / r3) * tstep
+        partner.vel_x = partner.vel_x + ((G * self.mass * (self.x - partner.x)) / r3) * tstep
+        partner.vel_y = partner.vel_y + ((G * self.mass * (self.y - partner.y)) / r3) * tstep
 
     def scale_mass(self):
         scale_factor = float(input("Enter a scale factor for the mass: "))
@@ -75,8 +71,8 @@ def gravityForces(bodies, tstep):
 
     # Now update the position of each body
     for j in range(0, len(bodies)):
-        bodies[j].x = bodies[j].x + bodies[j].velx * tstep
-        bodies[j].y = bodies[j].y + bodies[j].vely * tstep
+        bodies[j].x = bodies[j].x + bodies[j].vel_x * tstep
+        bodies[j].y = bodies[j].y + bodies[j].vel_y * tstep
         bodies[j].historical_x.append(bodies[j].x)
         bodies[j].historical_y.append(bodies[j].y)
 
