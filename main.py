@@ -19,8 +19,6 @@ ax1.set_ylim(-1.3e12, 1.3e12)
 text_string = "0 mths."
 time_text = ax1.text(0.05,0.9,text_string, transform=ax1.transAxes)
 
-# Create a slider to alter the mass of jupiter during the animation
-
 
 # Class for objects that are affected by gravity, Sun, planets, moons and smaller
 class Body:
@@ -48,13 +46,9 @@ class Body:
         partner.vel_x = partner.vel_x + ((G * self.mass * (self.x - partner.x)) / r3) * tstep
         partner.vel_y = partner.vel_y + ((G * self.mass * (self.y - partner.y)) / r3) * tstep
 
-    def scale_mass(self):
-        scale_factor = float(input("Enter a scale factor for the mass: "))
-        self.mass = scale_factor * self.mass
-
 
 def gravity_forces(bodies, tstep):
-    # bodies is a list of Body objects (massive bodies)
+    # Have each planet interact with every other and the sun gravitationally
     for i in range(0, len(bodies)-1):
         bodies[i].orbit_sun(tstep)
         for partner in bodies[i+1:]:
@@ -75,21 +69,21 @@ def gravity_forces(bodies, tstep):
 
 
 def animate(i, planet_list, lines, tstep):
-    # Plot the position of the planet
+    # Update the elapsed time readout text
     month_step = tstep / MONTH_SECS
     if i * month_step > 24:
         time_text.set_text("%(current_time)i yrs." % {"current_time": int(i * month_step / 12)})
     else:
         time_text.set_text("%(current_time)g mths." % {"current_time": i * month_step})
+    # Plot the positions of the planets
     for j in range(0, len(planet_list)):
         lines[2 * j].set_data(planet_list[j].x, planet_list[j].y)
         lines[(2 * j) + 1].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
-
+    # Apply the forces of gravity to each planet
     gravity_forces(planet_list, tstep)
     return lines + [time_text, ]
 
 
-# Start with just earth and jupiter
 def main():
     # Create our celestial bodies with initial conditions
     earth = Body("Earth", "blue", 0, 1.496e11, 5.972e24, 30000, 0)
