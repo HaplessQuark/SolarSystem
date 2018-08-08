@@ -1,8 +1,6 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import matplotlib.patches as patch
-from matplotlib.collections import PatchCollection
 
 # Define some useful physical constants
 G = 6.67408e-11
@@ -15,33 +13,26 @@ ASTRONOMICAL_UNIT = 1.496e11
 fig = plt.figure()
 fig.suptitle("Solar System")
 ax1 = fig.add_subplot(111)
-line, = ax1.plot([], [], "--", markersize=7)
-line2, = ax1.plot([], [], '--', markersize=7)
-line3, = ax1.plot([], [], '--', markersize=7)
-line4, = ax1.plot([], [], '--', markersize=7)
-# Want lines in a list, later we can determine the number of planets and create lines list as required
-lines = [line, line2, line3, line4]
-sun_patch = [patch.Circle((0, 0), 1e10)]
-patch_collection = PatchCollection(sun_patch)
-patch_collection.set_color('orange')
-ax1.add_collection(patch_collection)
 ax1.axis('equal')
 ax1.set_xlim(-1.3e12, 1.3e12)
 ax1.set_ylim(-1.3e12, 1.3e12)
 text_string = "0 mths."
 time_text = ax1.text(0.05,0.9,text_string, transform=ax1.transAxes)
 
+# Create a slider to alter the mass of jupiter during the animation
+
 
 # Class for objects that are affected by gravity, Sun, planets, moons and smaller
 class Body:
-    def __init__(self, name, parent, x, y, mass, velx, vely):
+    def __init__(self, name, color, x, y, mass, velx, vely):
         self.name = name
-        self.parent = parent
+        self.color = color
         self.x, self.y = x, y
         self.distance = math.sqrt(x**2 + y**2)
         self.mass = mass
         self.vel_x, self.vel_y = velx, vely
         self.historical_x, self.historical_y = [x], [y]
+        self.year_complete = False
 
     def orbit_sun(self, tstep):
         self.vel_x = self.vel_x - ((GM*self.x)/(self.distance**3)) * tstep
@@ -78,12 +69,12 @@ def gravity_forces(bodies, tstep):
         bodies[j].historical_y.append(bodies[j].y)
 
         # Delete redundant historical data
-        if len(bodies[j].historical_x) > 100:
+        if len(bodies[j].historical_x) > 500:
             bodies[j].historical_x.pop(0)
             bodies[j].historical_y.pop(0)
 
 
-def animate(i, planet_list, tstep):
+def animate(i, planet_list, lines, tstep):
     # Plot the position of the planet
     month_step = tstep / MONTH_SECS
     if i * month_step > 24:
@@ -91,22 +82,36 @@ def animate(i, planet_list, tstep):
     else:
         time_text.set_text("%(current_time)g mths." % {"current_time": i * month_step})
     for j in range(0, len(planet_list)):
-        lines[j].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
+        lines[2 * j].set_data(planet_list[j].x, planet_list[j].y)
+        lines[(2 * j) + 1].set_data(planet_list[j].historical_x, planet_list[j].historical_y)
 
     gravity_forces(planet_list, tstep)
-    return lines + [time_text,]
+    return lines + [time_text, ]
 
 
 # Start with just earth and jupiter
 def main():
     # Create our celestial bodies with initial conditions
-    earth = Body("Earth", "Sun", 0, 1.496e11, 5.972e24, 30000, 0)
-    jupiter = Body("Jupiter", "Sun", 0, 816.62e9, 1.8982e27, 13070, 0)
-    mars = Body("Mars", "Sun", 2.492e11, 0, 6.39e23, 0, -22000)
-    fake = Body("FakePlanet", "Sun", 9e11, 9e11, 2e26, 1000, -400)
+    earth = Body("Earth", "blue", 0, 1.496e11, 5.972e24, 30000, 0)
+    jupiter = Body("Jupiter", "orange", 0, 816.62e9, 1.8982e27, 13070, 0)
+    mars = Body("Mars", "red", 2.492e11, 0, 6.39e23, 0, -22000)
+    fake = Body("FakePlanet", "pink", 9e11, 9e11, 2e26, 1000, -400)
     planet_list = [earth, jupiter, mars, fake]
-    tstep = int(float(input("Enter time step (months) : "))*MONTH_SECS)
-    ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, tstep), interval=1, blit=True)
+    lines = []
+    # Generate the line objects here for the planets and pass them to animate
+    for i in range(0, len(planet_list)):
+        planet_dot, = ax1.plot([], [], "o", markersize=5, color=planet_list[i].color)
+        planet_line, = ax1.plot([], [], "-", markersize=1, color=planet_list[i].color)
+        lines.append(planet_dot)
+        lines.append(planet_line)
+
+    # Add the sun last
+    planet_dot, = ax1.plot(0, 0, "o", markersize=5, color="yellow")
+    lines.append(planet_dot)
+
+    tstep = 0.1 * MONTH_SECS
+    ani = animation.FuncAnimation(fig, animate, fargs=(planet_list, lines, tstep), interval=1, blit=True)
     plt.show()
+
 
 main()
